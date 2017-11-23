@@ -1,0 +1,21 @@
+body {
+    background: #333;
+}
+
+#map {
+    display: block;
+    background: #fff;
+    margin: 0;
+    position: absolute;
+}
+
+#gameName {
+    
+}
+
+@media screen and (min-height: 800px) {
+    #map {
+        position: relative;
+        margin: 4% auto;
+    }
+}
