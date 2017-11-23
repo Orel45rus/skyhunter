@@ -15,7 +15,7 @@ body {
 }
 
 /*Оптимизация под мониторы*/
-@media screen and (min-height: 800px) {
+@media screen and (min-height: 770px) {
     #map {
         position: relative;
         margin: 4% auto;
