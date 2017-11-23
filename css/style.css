@@ -5,17 +5,20 @@ body {
 #map {
     display: block;
     background: #fff;
-    margin: 0;
     position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #gameName {
-    
+
 }
 
+/*Оптимизация под мониторы*/
 @media screen and (min-height: 800px) {
     #map {
         position: relative;
         margin: 4% auto;
+        margin: 0;
     }
 }
