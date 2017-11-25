@@ -1,48 +1,67 @@
 $(document).ready(main);
 
-var canvas;
-var ctx;
+var map;
+var ctxMap;
+
+var starImg = new Image();
+starImg.src = "./img/star.png";
 
 function main() {
     init();
-
-    move();
+    drawScreen();
 }
 
+//Инициализация
 function init() {
-    canvas = document.getElementById("map");
-    ctx = canvas.getContext("2d");
+    map = document.getElementById("map");
+    ctxMap = map.getContext("2d");
 }
 
-function clear() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+//Очистить экран
+function clearScreen() {
+    ctxMap.clearRect(0, 0, map.width, map.height);
 }
 
-function setBg() {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+//Случайное значение (min, max)
+function getRand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function move() {
-    let x = 0;
-    let y = 0;
-    ctx.fillstyle = "#777";
-    ctx.fillRect(x, y, 100, 100);
-    setTimeout(function () {
-        setInterval(function () {
-            if (x < canvas.width - 100 && y == 0) {
-                x++;
-            } else if (y < canvas.height - 100 && x == canvas.width - 100) {
-                y++;
-            } else if (y == canvas.height - 100 && x > 0) {
-                x--;
-            } else if (x < canvas.width - 100 && y > 0) {
-                y--;
-            }
-            clear();
-            ctx.fillstyle = "#777";
-            ctx.fillRect(x, y, 100, 100);
-            $("p").html("("+x+");("+y+")"); 
-        }, 0.1);
-    }, 100);
+//Установить таймер
+function setTimer(a, b) {
+    let timer = getRand(a, b);
+    return timer;
+}
+
+//Рисуем звезду
+function Star() {
+    //Задаём размер звезды
+    this.size = getRand(5, 10);
+    //Задаём начальную точку звезды по (x)
+    this.x = map.width;
+    //Задаём случайное значение по (y)
+    this.y = getRand(0, map.height - this.size*2);
+
+    this.drawStar = function () {
+        ctxMap.drawImage(starImg, 0, 0, 50, 50, this.x, this.y, this.size, this.size);
+        this.moveStar();
+    };
+
+    this.moveStar = function () {
+        this.x += -15;
+    };
+}
+
+function drawScreen() {
+    let stars = [];
+    let count = 0;
+    setInterval(function () {
+        clearScreen();
+
+        stars[count] = new Star();
+        count++;
+        for (let i = 0; i < count; i++) {
+            stars[i].drawStar();
+        }
+    }, 50);
 }
