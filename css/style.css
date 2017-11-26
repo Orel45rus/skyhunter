@@ -10,6 +10,11 @@ body {
     left: 0;
 }
 
+#player, #meteorite, #stats {
+    display: block;
+    margin: -500px auto 0px;
+}
+
 /*Оптимизация под мониторы*/
 @media screen and (min-height: 770px) {
     #map {
