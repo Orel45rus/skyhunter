@@ -6,19 +6,23 @@ body {
     display: block;
     background: #111;
     position: absolute;
-    top: 0;
-    left: 0;
 }
 
 #player, #meteorite, #stats {
+    position: absolute;
     display: block;
-    margin: -500px auto 0px;
 }
 
 /*Оптимизация под мониторы*/
 @media screen and (min-height: 770px) {
     #map {
-        position: relative;
-        margin: 4% auto;
+        position: absolute;
+        left: 50%;
+        margin-left: -512px;
+    }
+    
+    #player, #meteorite, #stats {
+        left: 50%;
+        margin-left: -512px;
     }
 }

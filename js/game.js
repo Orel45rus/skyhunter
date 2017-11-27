@@ -1,5 +1,8 @@
 $(document).ready(main);
 
+var gameWidth;
+var gameHeight;
+
 var stars = [];
 
 var map;
@@ -57,33 +60,49 @@ function init() {
     ctxStats = stats.getContext("2d");
 
     meteorite = document.getElementById("meteorite");
-    
+
     document.addEventListener("keydown", checkKeyDown, false);
     document.addEventListener("keyup", checkKeyUp, false);
 
+    gameWidth = 1024;
+    gameHeight = 768;
+
     //Размер карты
-    map.width = 1024;
-    map.height = 768;
+    map.width = gameWidth;
+    map.height = gameHeight;
 
     //Размер модели игрока
-    pl.width = 180;
-    pl.height = 100;
+    pl.width = gameWidth;
+    pl.height = gameHeight;
 
     //Размер метеорита
-    meteorite.width = 165;
-    meteorite.height = 145;
-    
+    meteorite.width = gameWidth;
+    meteorite.height = gameHeight;
+
     ctxStats.fillStyle = "#3d3d3d";
     ctxStats.font = "bold 15pt Arial";
 
     player = new Player();
-    
+
     updateStats();
 }
 
-//Очистить экран
+function clearMap() {
+    ctxMap.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function clearPlayer() {
+    ctxPlayer.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function clearMeteor() {
+    ctxMeteor.clearRect(0, 0, gameWidth, gameHeight);
+}
+
 function clearScreen() {
-    ctxMap.clearRect(0, 0, map.width, map.height);
+    clearMap();
+    clearPlayer();
+    clearMeteor();
 }
 
 //Случайное значение (min, max)
@@ -103,7 +122,7 @@ function Star() {
     this.draw = function () {
         ctxMap.drawImage(starImg, 0, 0, 50, 50, this.x, this.y, this.size, this.size);
         this.move();
-        
+
         if (this.x < 0 - this.size) {
             this.x = map.width;
             this.y = getRand(0, map.height - this.size);
@@ -119,9 +138,9 @@ function Star() {
 function Player() {
     this.x = 0;
     this.y = 0;
-    this.width = pl.width;
-    this.height = pl.height;
-    
+    this.width = 180;
+    this.height = 100;
+
     this.isUp = false;
     this.isDown = false;
     this.isLeft = false;
@@ -130,13 +149,12 @@ function Player() {
     this.speed = 7;
 
     this.draw = function () {
-        clearScreen();
-        ctxMap.drawImage(shipImg, 0, 0, 578, 298, this.x, this.y, this.width, this.height);
+        ctxPlayer.drawImage(shipImg, 0, 0, 578, 298, this.x, this.y, this.width, this.height);
     };
-    
+
     this.move = function () {
         this.chooseDir();
-        
+
         if (this.x < 0) {
             this.x = 0;
         } else if (this.x > map.width - this.width) {
@@ -147,7 +165,7 @@ function Player() {
             this.y = map.height - this.height;
         }
     };
-    
+
     this.chooseDir = function () {
         if (this.isUp) {
             this.y -= this.speed;
@@ -163,23 +181,23 @@ function Player() {
 
 //Метеорит
 function Meteorite() {
-    this.x = getRand(map.width, map.width * 3);
-    this.y = getRand(0, map.height - meteorite.height);
-    this.width = meteorite.width;
-    this.height = meteorite.height;
+    this.x = getRand(gameWidth, gameWidth * 2);
+    this.y = getRand(0, gameHeight - this.height);
+    this.width = 165;
+    this.height = 145;
 
     this.speed = 4;
 
     this.draw = function () {
-        ctxMap.drawImage(meteoriteImg, 0, 0, 658, 580, this.x, this.y, this.width, this.height);
+        ctxMeteor.drawImage(meteoriteImg, 0, 0, 658, 580, this.x, this.y, this.width, this.height);
     };
-    
+
     this.move = function () {
         this.x -= this.speed;
-        
-        if (this.x < 0 - meteorite.width) {
-            this.x = getRand(map.width, map.width * 1.5);
-            this.y = getRand(0, map.height - meteorite.height);
+
+        if (this.x < 0 - this.width) {
+            this.x = getRand(gameWidth, gameWidth * 1.5);
+            this.y = getRand(0, gameHeight - this.height);
         }
     };
 }
@@ -187,7 +205,7 @@ function Meteorite() {
 function checkKeyDown(e) {
     var keyID = e.keyCode || e.which;
     var keyChar = String.fromCharCode(keyID);
-    
+
     if (keyChar == "W") {
         player.isUp = true;
         e.preventDefault();
@@ -209,7 +227,7 @@ function checkKeyDown(e) {
 function checkKeyUp(e) {
     var keyID = e.keyCode || e.which;
     var keyChar = String.fromCharCode(keyID);
-    
+
     if (keyChar == "W") {
         player.isUp = false;
         e.preventDefault();
@@ -242,6 +260,7 @@ function drawStars() {
 
 function loop() {
     if (isPlaying) {
+        clearScreen();
         drawScreen();
         update();
         requestAnimFrame(loop);
@@ -260,24 +279,25 @@ function stopLoop() {
 }
 
 function drawScreen() {
-    player.draw();
-    
+
+
     for (var i = 0; i < stars.length; i++) {
         stars[i].draw();
     }
-    
+
     for (var i = 0; i < meteorites.length; i++) {
         meteorites[i].draw();
     }
+    player.draw();
 }
 
 function update() {
     player.move();
-    
+
     for (var i = 0; i < meteorites.length; i++) {
         meteorites[i].move();
     }
-    
+
     for (var i = 0; i < stars.length; i++) {
         stars[i].move();
     }
