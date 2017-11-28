@@ -16,6 +16,13 @@ var meteorite;
 var ctxMeteor;
 var meteorites = [];
 
+var fuel;
+var score;
+var scoreSec = 0;
+var scoreMin = 0;
+
+var canister;
+
 var requestAnimFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame ||
@@ -31,6 +38,9 @@ var starsCount = 200;
 var stats;
 var ctxStats;
 
+var gameOver;
+var ctxGameOver;
+
 var starImg = new Image();
 starImg.src = "./img/star.png";
 
@@ -39,6 +49,9 @@ shipImg.src = "./img/ship.png";
 
 var meteoriteImg = new Image();
 meteoriteImg.src = "./img/meteorite.png";
+
+var canisterImg = new Imahe();
+canisterImg.src = "./img/canister.png";
 
 function main() {
     init();
@@ -55,11 +68,15 @@ function init() {
 
     meteorite = document.getElementById("meteorite");
     ctxMeteor = pl.getContext("2d");
+    
+    canister = document.getElementById("canister");
+    ctxCanister = canister.getContext("2d");
 
     stats = document.getElementById("stats");
     ctxStats = stats.getContext("2d");
 
-    meteorite = document.getElementById("meteorite");
+    gameOver = document.getElementById("gameover");
+    ctxGameOver = gameOver.getContext("2d");
 
     document.addEventListener("keydown", checkKeyDown, false);
     document.addEventListener("keyup", checkKeyUp, false);
@@ -67,20 +84,29 @@ function init() {
     gameWidth = 1024;
     gameHeight = 768;
 
-    //Размер карты
     map.width = gameWidth;
     map.height = gameHeight;
 
-    //Размер модели игрока
     pl.width = gameWidth;
     pl.height = gameHeight;
 
-    //Размер метеорита
     meteorite.width = gameWidth;
     meteorite.height = gameHeight;
+    
+    canister.width = gameWidth;
+    canister.height = gameHeight;
 
-    ctxStats.fillStyle = "#3d3d3d";
-    ctxStats.font = "bold 15pt Arial";
+    stats.width = gameWidth;
+    stats.height = gameHeight;
+    ctxStats.fillStyle = "red";
+    ctxStats.font = "bold 30px Arial";
+
+    gameOver.width = gameWidth;
+    gameOver.height = gameHeight;
+    ctxGameOver.fillStyle = "#fff";
+    ctxGameOver.font = "bold 25pt Courier";
+
+    fuel = 101;
 
     player = new Player();
 
@@ -99,10 +125,15 @@ function clearMeteor() {
     ctxMeteor.clearRect(0, 0, gameWidth, gameHeight);
 }
 
+function clearStats() {
+    ctxStats.clearRect(0, 0, gameWidth, gameHeight);
+}
+
 function clearScreen() {
     clearMap();
     clearPlayer();
     clearMeteor();
+    clearStats();
 }
 
 //Случайное значение (min, max)
@@ -153,6 +184,17 @@ function Player() {
     };
 
     this.move = function () {
+        //Проверка на столкновение
+        for (var i = 0; i < meteorites.length; i++) {
+            if (this.x + this.width - 40 > meteorites[i].x &&
+                    this.y + this.height - 20 > meteorites[i].y &&
+                    this.x < meteorites[i].x + meteorites[i].width - 20 &&
+                    this.y < meteorites[i].y + meteorites[i].height - 20) {
+                fuel = 0;
+            }
+        }
+
+        //направление
         this.chooseDir();
 
         if (this.x < 0) {
@@ -181,10 +223,10 @@ function Player() {
 
 //Метеорит
 function Meteorite() {
-    this.x = getRand(gameWidth, gameWidth * 2);
+    this.x = getRand(gameWidth, gameWidth * 1.5);
     this.y = getRand(0, gameHeight - this.height);
-    this.width = 165;
-    this.height = 145;
+    this.width = 124;
+    this.height = 109;
 
     this.speed = 4;
 
@@ -200,6 +242,26 @@ function Meteorite() {
             this.y = getRand(0, gameHeight - this.height);
         }
     };
+}
+
+//Канистра
+function Canister() {
+    this.x = getRand(0, gameWidth - this.width * 3);
+    this.y = 0 - this.height;
+    this.width = 83;
+    this.height = 118;
+    
+    this.speed = 3;
+    
+    this.draw = function() {
+        ctxCanister.drawImage(canisterImg, 0, 0, 246, 355, this.x, this.y, this.width, this.height);
+    }
+    
+    this.move = function() {
+        this.y += this.speed;
+        
+        if ()
+    }
 }
 
 function checkKeyDown(e) {
@@ -246,6 +308,15 @@ function checkKeyUp(e) {
     }
 }
 
+function checkFuel() {
+    if (fuel <= 0) {
+        stopLoop();
+        gameOverScreen();
+    } else {
+        fuel -= 0.016;
+    }
+}
+
 function spawnMeteor(count) {
     for (var i = 0; i < spawnAmount; i++) {
         meteorites[i] = new Meteorite();
@@ -255,6 +326,26 @@ function spawnMeteor(count) {
 function drawStars() {
     for (var i = 0; i < starsCount; i++) {
         stars[i] = new Star();
+    }
+}
+
+function timer() {
+    if (isPlaying) {
+        scoreSec += 0.016;
+            if (Math.floor(scoreSec) > 9) {
+                score = Math.floor(scoreMin) + ":" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
+            } else {
+                score = Math.floor(scoreMin) + ":0" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
+            }
+        if (scoreSec >= 60) {
+            scoreMin = Math.floor(scoreSec / 60);
+        } else {
+            if (Math.floor(scoreSec) > 9) {
+                score = Math.floor(scoreSec);
+            } else {
+                score = "0" + Math.floor(scoreSec);
+            }
+        }
     }
 }
 
@@ -279,8 +370,6 @@ function stopLoop() {
 }
 
 function drawScreen() {
-
-
     for (var i = 0; i < stars.length; i++) {
         stars[i].draw();
     }
@@ -292,6 +381,9 @@ function drawScreen() {
 }
 
 function update() {
+    updateStats();
+    checkFuel();
+    timer();
     player.move();
 
     for (var i = 0; i < meteorites.length; i++) {
@@ -304,24 +396,12 @@ function update() {
 }
 
 function updateStats() {
-    ctxStats.clearRect(0, 0, map.width, map.height);
-    ctxStats.fillText("Player", 20, 20);
+    clearStats();
+    ctxStats.fillText("Fuel: " + Math.floor(fuel) + "\r\n" + "Time: " + score, 20, 30);
 }
 
-//function drawScreen() {
-//    let stars = [];
-//    let count = 0;
-//    setInterval(function () {
-//        clearScreen();
-//
-//        //Создаём массив из движущихся звёзд
-//        stars[count] = new Star();
-//        count++;
-//        for (let i = 0; i < count; i++) {
-//            stars[i].drawStar();
-//        }
-//        //Рисуем игрока
-//        player.draw();
-//        meteorite.draw();
-//    }, 50);
-//}
+function gameOverScreen() {
+    clearScreen();
+    ctxGameOver.clearRect(0, 0, gameWidth, gameHeight);
+    ctxGameOver.fillText("GAME OVER!" + "\r\n" + "SCORE: " + score, gameWidth / 2 - 200, gameHeight / 2 - 15);
+}

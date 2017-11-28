@@ -8,7 +8,7 @@ body {
     position: absolute;
 }
 
-#player, #meteorite, #stats {
+#player, #meteorite, #stats, #gameover, #canister {
     position: absolute;
     display: block;
 }
@@ -21,7 +21,7 @@ body {
         margin-left: -512px;
     }
     
-    #player, #meteorite, #stats {
+    #player, #meteorite, #stats, #gameover {
         left: 50%;
         margin-left: -512px;
     }
