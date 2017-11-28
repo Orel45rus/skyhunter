@@ -320,6 +320,11 @@ function Bonus() {
     
     this.move = function () {
         this.x -= 4;
+        
+        //Не даём улететь звезде
+        if (this.x < 0 - this.width) {
+            this.x = gameWidth * 2;
+        }
     };
 }
 
