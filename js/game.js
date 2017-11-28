@@ -22,6 +22,11 @@ var scoreSec = 0;
 var scoreMin = 0;
 
 var canister;
+var ctxCanister;
+
+var bonusCount = 0;
+var bonus;
+var ctxBonus;
 
 var requestAnimFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -50,8 +55,11 @@ shipImg.src = "./img/ship.png";
 var meteoriteImg = new Image();
 meteoriteImg.src = "./img/meteorite.png";
 
-var canisterImg = new Imahe();
+var canisterImg = new Image();
 canisterImg.src = "./img/canister.png";
+
+var bonusImg = new Image();
+bonusImg.src = "./img/bonus.png";
 
 function main() {
     init();
@@ -68,9 +76,12 @@ function init() {
 
     meteorite = document.getElementById("meteorite");
     ctxMeteor = pl.getContext("2d");
-    
+
     canister = document.getElementById("canister");
     ctxCanister = canister.getContext("2d");
+    
+    bonus = document.getElementById("bonus");
+    ctxBonus = bonus.getContext("2d");
 
     stats = document.getElementById("stats");
     ctxStats = stats.getContext("2d");
@@ -92,9 +103,12 @@ function init() {
 
     meteorite.width = gameWidth;
     meteorite.height = gameHeight;
-    
+
     canister.width = gameWidth;
     canister.height = gameHeight;
+    
+    bonus.width = gameWidth;
+    bonus.height = gameHeight;
 
     stats.width = gameWidth;
     stats.height = gameHeight;
@@ -106,9 +120,11 @@ function init() {
     ctxGameOver.fillStyle = "#fff";
     ctxGameOver.font = "bold 25pt Courier";
 
-    fuel = 101;
+    fuel = 51;
 
     player = new Player();
+    canister = new Canister();
+    bonus = new Bonus();
 
     updateStats();
 }
@@ -129,11 +145,21 @@ function clearStats() {
     ctxStats.clearRect(0, 0, gameWidth, gameHeight);
 }
 
+function clearCanister() {
+    ctxCanister.clearRect(0, 0, gameWidth, gameHeight);
+}
+
+function clearBonus() {
+    ctxBonus.clearRect(0, 0, gameWidth, gameHeight);
+}
+
 function clearScreen() {
     clearMap();
     clearPlayer();
     clearMeteor();
     clearStats();
+    clearCanister();
+    clearBonus();
 }
 
 //Случайное значение (min, max)
@@ -184,7 +210,7 @@ function Player() {
     };
 
     this.move = function () {
-        //Проверка на столкновение
+        //Проверка на столкновение (метеорит)
         for (var i = 0; i < meteorites.length; i++) {
             if (this.x + this.width - 40 > meteorites[i].x &&
                     this.y + this.height - 20 > meteorites[i].y &&
@@ -192,6 +218,25 @@ function Player() {
                     this.y < meteorites[i].y + meteorites[i].height - 20) {
                 fuel = 0;
             }
+        }
+
+        //Проверка на столкновение (канистра)
+        if (this.x + this.width > canister.x &&
+                this.y + this.height > canister.y &&
+                this.x < canister.x + canister.width &&
+                this.y < canister.y + canister.height) {
+            canister.y = 0 - gameHeight * 1.2;
+            fuel += 15;
+        }
+
+        //Проверка на столкновение (бонус)
+        if (this.x + this.width > bonus.x &&
+                this.y + this.height > bonus.y &&
+                this.x < bonus.x + bonus.width &&
+                this.y < bonus.y + bonus.height) {
+            bonus.x = gameWidth * 2.5;
+            bonus.y = getRand(0, gameHeight - bonus.height);
+            bonusCount++;
         }
 
         //направление
@@ -246,21 +291,36 @@ function Meteorite() {
 
 //Канистра
 function Canister() {
-    this.x = getRand(0, gameWidth - this.width * 3);
-    this.y = 0 - this.height;
     this.width = 83;
     this.height = 118;
-    
-    this.speed = 3;
+    this.x = getRand(0, gameWidth - this.width * 3);
+    this.y = 0 - gameHeight;
+
+    this.speed = 1.5;
+
+    this.draw = function () {
+        ctxCanister.drawImage(canisterImg, 0, 0, 246, 355, this.x, this.y, this.width, this.height);
+    };
+
+    this.move = function () {
+        this.x += getRand(-1, 1);
+        this.y += this.speed;
+    };
+}
+
+function Bonus() {
+    this.width = 62;
+    this.height = 60;
+    this.x = gameWidth * 2;
+    this.y = getRand(0, gameHeight - this.height);
     
     this.draw = function() {
-        ctxCanister.drawImage(canisterImg, 0, 0, 246, 355, this.x, this.y, this.width, this.height);
-    }
+        ctxBonus.drawImage(bonusImg, 0, 0, 370, 356, this.x, this.y, this.width, this.height);
+    };
     
-    this.move = function() {
-        this.y += this.speed;
-        
-    }
+    this.move = function () {
+        this.x -= 4;
+    };
 }
 
 function checkKeyDown(e) {
@@ -316,14 +376,14 @@ function checkFuel() {
     }
 }
 
-function spawnMeteor(count) {
-    for (var i = 0; i < spawnAmount; i++) {
+function spawnMeteor() {
+    for (let i = 0; i < spawnAmount; i++) {
         meteorites[i] = new Meteorite();
     }
 }
 
 function drawStars() {
-    for (var i = 0; i < starsCount; i++) {
+    for (let i = 0; i < starsCount; i++) {
         stars[i] = new Star();
     }
 }
@@ -331,11 +391,11 @@ function drawStars() {
 function timer() {
     if (isPlaying) {
         scoreSec += 0.016;
-            if (Math.floor(scoreSec) > 9) {
-                score = Math.floor(scoreMin) + ":" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
-            } else {
-                score = Math.floor(scoreMin) + ":0" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
-            }
+        if (Math.floor(scoreSec) > 9) {
+            score = Math.floor(scoreMin) + ":" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
+        } else {
+            score = Math.floor(scoreMin) + ":0" + Math.floor(Math.floor(scoreSec) - Math.floor(scoreMin) * 60);
+        }
         if (scoreSec >= 60) {
             scoreMin = Math.floor(scoreSec / 60);
         } else {
@@ -348,6 +408,13 @@ function timer() {
     }
 }
 
+function startLoop() {
+    isPlaying = true;
+    loop();
+    spawnMeteor();
+    drawStars();
+}
+
 function loop() {
     if (isPlaying) {
         clearScreen();
@@ -357,23 +424,19 @@ function loop() {
     }
 }
 
-function startLoop() {
-    isPlaying = true;
-    loop();
-    spawnMeteor();
-    drawStars();
-}
-
 function stopLoop() {
     isPlaying = false;
 }
 
 function drawScreen() {
-    for (var i = 0; i < stars.length; i++) {
+    for (let i = 0; i < stars.length; i++) {
         stars[i].draw();
     }
 
-    for (var i = 0; i < meteorites.length; i++) {
+    canister.draw();
+    bonus.draw();
+
+    for (let i = 0; i < meteorites.length; i++) {
         meteorites[i].draw();
     }
     player.draw();
@@ -385,22 +448,26 @@ function update() {
     timer();
     player.move();
 
-    for (var i = 0; i < meteorites.length; i++) {
+    for (let i = 0; i < meteorites.length; i++) {
         meteorites[i].move();
     }
 
-    for (var i = 0; i < stars.length; i++) {
+    canister.move();
+    bonus.move();
+
+    for (let i = 0; i < stars.length; i++) {
         stars[i].move();
     }
 }
 
 function updateStats() {
     clearStats();
-    ctxStats.fillText("Fuel: " + Math.floor(fuel) + "\r\n" + "Time: " + score, 20, 30);
+    ctxStats.fillText("Bonus: " + bonusCount + "\r\n Fuel: " + Math.floor(fuel) +  "\r\n Time: " + score, 20, 30);
 }
 
 function gameOverScreen() {
     clearScreen();
     ctxGameOver.clearRect(0, 0, gameWidth, gameHeight);
-    ctxGameOver.fillText("GAME OVER!" + "\r\n" + "SCORE: " + score, gameWidth / 2 - 200, gameHeight / 2 - 15);
+    ctxGameOver.fillText("GAME OVER!" + "\r\n TIME: " + score + "\r\n SCORE: " + bonusCount, gameWidth / 2 - 350, gameHeight / 2 - 15);
+    ctxGameOver.fillText("Нажмите F5, чтобы попробовать ещё!", gameWidth / 2 - 300, gameHeight / 1.7);
 }
