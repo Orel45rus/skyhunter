@@ -260,7 +260,6 @@ function Canister() {
     this.move = function() {
         this.y += this.speed;
         
-        if ()
     }
 }
 
