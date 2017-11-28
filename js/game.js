@@ -35,6 +35,7 @@ var requestAnimFrame = window.requestAnimationFrame ||
         window.msRequestAnimationFrame;
 
 var isPlaying;
+var pause = false;
 
 var spawnAmount = 6;
 
@@ -79,7 +80,7 @@ function init() {
 
     canister = document.getElementById("canister");
     ctxCanister = canister.getContext("2d");
-    
+
     bonus = document.getElementById("bonus");
     ctxBonus = bonus.getContext("2d");
 
@@ -106,7 +107,7 @@ function init() {
 
     canister.width = gameWidth;
     canister.height = gameHeight;
-    
+
     bonus.width = gameWidth;
     bonus.height = gameHeight;
 
@@ -313,14 +314,14 @@ function Bonus() {
     this.height = 60;
     this.x = gameWidth * 2;
     this.y = getRand(0, gameHeight - this.height);
-    
-    this.draw = function() {
+
+    this.draw = function () {
         ctxBonus.drawImage(bonusImg, 0, 0, 370, 356, this.x, this.y, this.width, this.height);
     };
-    
+
     this.move = function () {
         this.x -= 4;
-        
+
         //Не даём улететь звезде
         if (this.x < 0 - this.width) {
             this.x = gameWidth * 2;
@@ -347,6 +348,9 @@ function checkKeyDown(e) {
     if (keyChar == "D") {
         player.isRight = true;
         e.preventDefault();
+    }
+    if (e.keyCode == 32) {
+        setPause();
     }
 }
 
@@ -413,6 +417,13 @@ function timer() {
     }
 }
 
+function setPause() {
+    if (pause == false)
+        pause = true;
+    else
+        pause = false;
+}
+
 function startLoop() {
     isPlaying = true;
     loop();
@@ -449,25 +460,31 @@ function drawScreen() {
 
 function update() {
     updateStats();
-    checkFuel();
-    timer();
-    player.move();
+    if (!pause) {
+        checkFuel();
+        timer();
+        player.move();
 
-    for (let i = 0; i < meteorites.length; i++) {
-        meteorites[i].move();
-    }
+        for (let i = 0; i < meteorites.length; i++) {
+            meteorites[i].move();
+        }
 
-    canister.move();
-    bonus.move();
+        canister.move();
+        bonus.move();
 
-    for (let i = 0; i < stars.length; i++) {
-        stars[i].move();
+        for (let i = 0; i < stars.length; i++) {
+            stars[i].move();
+        }
     }
 }
 
 function updateStats() {
     clearStats();
-    ctxStats.fillText("Bonus: " + bonusCount + "\r\n Fuel: " + Math.floor(fuel) +  "\r\n Time: " + score, 20, 30);
+    if (!pause) {
+        ctxStats.fillText("Bonus: " + bonusCount + "\r\n Fuel: " + Math.floor(fuel) + "\r\n Time: " + score, 20, 30);
+    } else {
+        ctxStats.fillText("Game is paused", 20, 30);
+    }
 }
 
 function gameOverScreen() {
