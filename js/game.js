@@ -306,11 +306,6 @@ function Canister() {
     this.move = function () {
         this.x += getRand(-1, 1);
         this.y += this.speed;
-            
-        if (this.y > gameheight) {
-            this.y = 0 - gameHeight;
-            this.x = getRand(0, gameWidth - this.width * 3);
-        }
     };
 }
 
